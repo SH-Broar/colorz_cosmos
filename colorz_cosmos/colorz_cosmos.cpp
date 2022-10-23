@@ -5,8 +5,6 @@
 #include <random>
 #include <chrono>
 #include <string>
-#include <thread>
-#include <mutex>
 #include <iomanip>
 
 using namespace std;
@@ -17,23 +15,28 @@ long long ysize = 30;
 long long speedation = 30;
 long long frequency = 42;
 
+long long cosmos = 0;
 long long currmaxcosmos = 0;
 long long maxcosmos = 0;
 long long maxtotalcosmos = 0;
 long long totalcosmos = 0;
 long long ticks = 0;
 
+int printType = 0;
+
 string cons{};
 
 struct Cell
 {
     long long n;
+    char p;
     int type;
     vector<bool> vec;
 
     Cell()
     {
         n = 1;
+        p = '1';
         type = 1;
         vec.resize(4);
     }
@@ -41,6 +44,7 @@ struct Cell
     void init(int i)
     {
         n = i;
+        p = i+'0';
         fill(vec.begin(), vec.end(), false);
     }
 
@@ -87,8 +91,6 @@ vector<vector<Cell>> tmppanel;
 default_random_engine dre;
 uniform_int_distribution<int> uid;
 
-mutex l;
-
 void gotoxy(short x, short y)
 {
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), { x, y });
@@ -98,6 +100,7 @@ void pulser(long long i, long long j)
 {
     if (printpanel[i][j].n)
     {
+        cosmos++;
         int c = tmppanel[i][j].n;
         if (c > maxcosmos)
         {
@@ -134,54 +137,6 @@ void pulser(long long i, long long j)
     }
 }
 
-void printer()
-{
-    while (true)
-    {
-        for (long long i = 0; i < xsize; ++i)
-        {
-            for (long long j = 0; j < ysize; ++j)
-            {
-                if (panel[i][j] != printpanel[i][j])
-                {
-                    gotoxy(i, j);
-
-                    panel[i][j] = printpanel[i][j].n;
-
-                    if (panel[i][j].n < 0)
-                        panel[i][j].n = 0;
-                    else if (panel[i][j].n > 9)
-                        panel[i][j].n = 9;
-
-                    totalcosmos += printpanel[i][j].n * printpanel[i][j].vectorNums();
-
-                    if (panel[i][j] == 0)
-                        cout << ".";
-                    else
-                        cout << panel[i][j].n;
-
-                }
-            }
-        }
-        if (totalcosmos > maxtotalcosmos)
-            maxtotalcosmos = totalcosmos;
-
-        gotoxy(0, ysize);
-
-        string xx{};
-        xx.resize(xsize, ' ');
-        cout << xx;
-
-        gotoxy(0, ysize);
-        if (xsize < cons.size())
-            cout << "M : " << maxcosmos << " / CM : "  << currmaxcosmos << " / T : " << maxtotalcosmos << "\nCT : " << totalcosmos << " / Ticks : " << ticks;
-        else
-            cout << "M : " << maxcosmos << " / CM : " << currmaxcosmos << " / T : " << maxtotalcosmos << " / CT : " << totalcosmos << " / Ticks : " << ticks;
-
-        SleepEx(speedation, true);
-    }
-}
-
 int main()
 {
     SetConsoleTitle(TEXT("numeric cosmos"));
@@ -199,6 +154,8 @@ int main()
         cin >> speedation;
         cout << "frequency : ";
         cin >> frequency;
+        cout << "printType : ";
+        cin >> printType;
     }
     else if (selection == 2)
     {
@@ -210,6 +167,8 @@ int main()
         cin >> speedation;
         cout << "frequency : ";
         cin >> frequency;
+        cout << "printType : ";
+        cin >> printType;
     }
 
     panel.resize(xsize);
@@ -222,14 +181,17 @@ int main()
         tmppanel[i].resize(ysize);
     }
 
-    cons = "mode con lines=";
-    if (xsize < 90)
-        cons += to_string(ysize+ 2);
-    else
-        cons += to_string(ysize + 1);
-    cons += " cols=";
-    cons += to_string(xsize);
-    system(cons.c_str());
+    if (!(selection == 2))
+    {
+        cons = "mode con lines=";
+        if (xsize < 90)
+            cons += to_string(ysize + 2);
+        else
+            cons += to_string(ysize + 1);
+        cons += " cols=";
+        cons += to_string(xsize);
+        system(cons.c_str());
+    }
 
     dre.seed(std::chrono::system_clock::now().time_since_epoch().count());
 
@@ -247,11 +209,9 @@ int main()
 
     long long counter = 0;
 
-
-    thread prt{ printer };
-
     while (true)
     {
+        cosmos = 0;
         currmaxcosmos = 0;
         totalcosmos = 0;
         tmppanel = printpanel;
@@ -263,6 +223,63 @@ int main()
             }
         }
         printpanel = tmppanel;
+
+        for (long long i = 0; i < xsize; ++i)
+        {
+            for (long long j = 0; j < ysize; ++j)
+            {
+                if (panel[i][j] != printpanel[i][j])
+                {
+                    gotoxy(i, j);
+
+                    panel[i][j] = printpanel[i][j].n;
+
+                   
+                    if (printType == 1)
+                    {
+                        if (panel[i][j].n <= 0)
+                            panel[i][j].p = '.';
+                        else if (panel[i][j].n < 10)
+                            panel[i][j].p = panel[i][j].n + '0';
+                        else if (panel[i][j].n <= 10 + 26)
+                            panel[i][j].p = 'a' + panel[i][j].n - 10;
+                        else if (panel[i][j].n <= 10 + 26 + 260)
+                            panel[i][j].p = 'A' + (panel[i][j].n - 36)/10;
+                        else
+                            panel[i][j].p = '*';
+                    }
+                    else if (printType == 0)
+                    {
+                        if (panel[i][j].n <= 0)
+                            panel[i][j].p = '.';
+                        else if (panel[i][j].n < 10)
+                            panel[i][j].p = panel[i][j].n + '0';
+                        else
+                            panel[i][j].p = '9';
+                    }
+
+                    totalcosmos += printpanel[i][j].n * printpanel[i][j].vectorNums();
+
+                    cout << panel[i][j].p;
+
+                }
+            }
+        }
+        if (totalcosmos > maxtotalcosmos)
+            maxtotalcosmos = totalcosmos;
+
+        gotoxy(0, ysize);
+
+        string xx{};
+        xx.resize(xsize, ' ');
+        cout << xx;
+
+        gotoxy(0, ysize);
+        if (xsize < cons.size())
+            cout << "C : " << cosmos << " / M : " << maxcosmos << " / CM : " << currmaxcosmos << "\nT : " << maxtotalcosmos << " / CT : " << totalcosmos << " / Ticks : " << ticks;
+        else
+            cout << "C : " << cosmos << " / M : " << maxcosmos << " / CM : " << currmaxcosmos << " / T : " << maxtotalcosmos << " / CT : " << totalcosmos << " / Ticks : " << ticks;
+
 
         counter++;
         ticks++;
@@ -280,6 +297,4 @@ int main()
             printpanel[rx][ry].set(1, vv);
         }
     }
-
-    prt.join();
 }
