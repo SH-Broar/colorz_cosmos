@@ -160,7 +160,7 @@ int main()
     else if (selection == 2)
     {
         SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
-        xsize = 240;
+        xsize = 238;
         ysize = 66;
         
         cout << "speedation : ";
@@ -204,6 +204,7 @@ int main()
         }
     }
 
+    cosmos = 0;
     currmaxcosmos = 0;
     totalcosmos = 0;
 
@@ -211,19 +212,6 @@ int main()
 
     while (true)
     {
-        cosmos = 0;
-        currmaxcosmos = 0;
-        totalcosmos = 0;
-        tmppanel = printpanel;
-        for (long long i = 0; i < xsize; ++i)
-        {
-            for (long long j = 0; j < ysize; ++j)
-            {
-                pulser(i, j);
-            }
-        }
-        printpanel = tmppanel;
-
         for (long long i = 0; i < xsize; ++i)
         {
             for (long long j = 0; j < ysize; ++j)
@@ -275,15 +263,25 @@ int main()
         cout << xx;
 
         gotoxy(0, ysize);
-        if (xsize < cons.size())
-            cout << "C : " << cosmos << " / M : " << maxcosmos << " / CM : " << currmaxcosmos << "\nT : " << maxtotalcosmos << " / CT : " << totalcosmos << " / Ticks : " << ticks;
-        else
-            cout << "C : " << cosmos << " / M : " << maxcosmos << " / CM : " << currmaxcosmos << " / T : " << maxtotalcosmos << " / CT : " << totalcosmos << " / Ticks : " << ticks;
-
+        cout << "C : " << cosmos << " / M : " << maxcosmos << " / CM : " << currmaxcosmos << " / T : " << maxtotalcosmos << " / CT : " << totalcosmos << " / Ticks : " << ticks;
 
         counter++;
         ticks++;
         SleepEx(speedation, true);
+
+        cosmos = 0;
+        currmaxcosmos = 0;
+        totalcosmos = 0;
+
+        tmppanel = printpanel;
+        for (long long i = 0; i < xsize; ++i)
+        {
+            for (long long j = 0; j < ysize; ++j)
+            {
+                pulser(i, j);
+            }
+        }
+        printpanel = tmppanel;
 
         if (counter >= uid(dre) % frequency)
         {
